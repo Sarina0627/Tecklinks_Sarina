@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ユーザーページ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://kit.fontawesome.com/4e7bde2936.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<header>
+  <form action="/search/timeline" method="get">
+    <% if @placeholder.present? %>
+      <input type="text" name="search_text" placeholder="<%= @placeholder %>" class="serch_text">
+    <% else %>
+      <input type="text" name="search_text" placeholcder="何でも検索" class="serch_text">
+    <% end %>
+    <label for="serch" class="serch_icon"><i class="fas fa-search"></i></label>
+    <input type="submit" value="検索" name="serch" id="serch" class="serch_button">
+  </form>
+  <nav>
+    <div class="right_nav">
+      <a href="/timeline" class="left_list">一覧</a>
+      <a href="/favorites" class="left_list">お気に入り</a>
+      <a href="#" id="publish_btn" class="left_list">追加する</a>
+      <a href="/user" class="left_list" style="color:#b30c0c;">マイページ</a>
+    </div>
+    <div class="left_nav">
+      <% unless session[:user]%>
+        <a href="/">ログイン</a><a href="/signup">新規登録</a><br>
+        <p>ログインしていません</p>
+       <% else %>
+        <div class="user_mark">
+          <a href="/timeline"><%= User.find(session[:user]).username%></a>
+        </div>
+        <a href="/signout" class="signout">Sign Out</a>
+      <% end %>
+    </div>
+  </nav>
+</header>
+
+<div class="publish" id="publish">
+  <div class="publish_box">
+     <a href="#" id="close_btn"><i class="fas fa-times close_btn"></i></a>
+      <form action="/publish" method="post">
+        <div class="input_boxes">
+          <input type="url" name="url" placeholder="URL" id="url" class="input">
+          <input type="text" name="title" placeholder="タイトル" id="title"  class="input">
+          <input type="textarea" name="tag" placeholder="ハッシュタグ入力" id="tag"  class="input">
+        </div>
+        <input type="submit" value="追加" id="add_btn" class="submit">
+      </form>
+  </div>
+</div>
+
+<div class="bookmarks">
+  <% @bookmarks.each do |bookmark| %>
+    <div class="bookmark">
+      <a href="<%= bookmark.url %>" target="_blank" rel="noopener noreferrer" class="bookmark_title"><%= bookmark.title %></a>
+      <form action="/delete/<%= bookmark.id%>" method="post">
+        <label for="delete" class="delete_btn"><i class="fas fa-trash-alt"></i></label>
+        <input type="submit" name="delete" id="delete">
+      </form>
+      <img class="capture" src="https://s.wordpress.com/mshots/v1/<%= bookmark.url %>" alt="">
+
+      <% @hashtags_each = bookmark.tag.scan(/[#＃][\w\p{Han}ぁ-ヶｦ-ﾟー]+/) %>
+
+      <% @hashtags_each.uniq.map do |tag| %>
+        <% tag.delete!("#")%>
+        <% Tag.where(tag_body:"#{tag}").all.each do |t|%>
+          <a href="/bookmark/<%= t.id %>" class="tags">#<%=t.tag_body%></a>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+</body>
+</html>

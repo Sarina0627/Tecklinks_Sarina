@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>一覧ページ</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://kit.fontawesome.com/4e7bde2936.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<header>
+  <form action="/search/timeline" method="get">
+    <% if @placeholder.present? %>
+      <input type="text" name="search_text" placeholder="<%= @placeholder %>" class="serch_text">
+    <% else %>
+      <input type="text" name="search_text" placeholcder="何でも検索" class="serch_text">
+    <% end %>
+    <label for="serch" class="serch_icon"><i class="fas fa-search"></i></label>
+    <input type="submit" value="検索" name="serch" id="serch" class="serch_button">
+  </form>
+  <nav>
+    <div class="right_nav">
+      <a href="/timeline" class="left_list" style="color:#b30c0c;">一覧</a>
+      <a href="/favorites" class="left_list">お気に入り</a>
+      <a href="#" id="publish_btn" class="left_list">追加する</a>
+      <a href="/user" class="left_list">マイページ</a>
+    </div>
+    <div class="left_nav">
+      <% unless session[:user]%>
+        <div class="fail_login">
+          <a href="/signup" class="user_mark">新規登録</a>
+          <a href="/" class="user_mark">ログイン</a>
+        </div>
+       <% else %>
+        <div class="user_mark">
+          <a href="/timeline"><%= User.find(session[:user]).username%></a>
+        </div>
+        <%# <a class="sign_out" href="/signout">ログアウト</a> %>
+      <% end %>
+    </div>
+  </nav>
+</header>
+
+<div class="publish" id="publish">
+  <div class="publish_box">
+     <a href="#" id="close_btn"><i class="fas fa-times close_btn"></i></a>
+      <form action="/publish" method="post">
+        <div class="input_boxes">
+          <input type="url" name="url" placeholder="URL" id="url" class="input">
+          <input type="text" name="title" placeholder="タイトル" id="title"  class="input">
+          <input type="textarea" name="tag" placeholder="ハッシュタグ入力" id="tag"  class="input">
+        </div>
+        <input type="submit" value="追加" id="add_btn" class="submit">
+      </form>
+  </div>
+</div>
+
+<div class="bookmarks">
+  <% @bookmarks.each do |bookmark| %>
+    <div class="bookmark">
+      <a href="<%= bookmark.url %>" target="_blank" rel="noopener noreferrer" class="bookmark_title"><%= bookmark.title %></a>
+      <img class="capture" src="https://s.wordpress.com/mshots/v1/<%= bookmark.url %>" alt="">
+
+      <% logger.info "test" %>
+      <% logger.info Favorite.find_by(bookmark_id: bookmark.id) %>
+
+      <% if Favorite.find_by(bookmark_id: bookmark.id).present? %>
+        <% if Favorite.find_by(bookmark_id: bookmark.id).user_id == @user_id %>
+          <i class="fas fa-heart fav-button favorite" id="<%= bookmark.id %>-fav-id"></i>
+        <% else %>
+          <i class="far fa-heart fav-button favorite" id="<%= bookmark.id %>-fav-id"></i>
+        <% end %>
+      <% else %>
+        <i class="far fa-heart fav-button favorite" id="<%= bookmark.id %>-fav-id"></i>
+      <% end %>
+
+      <% @hashtags_each = bookmark.tag.scan(/[#＃][\w\p{Han}ぁ-ヶｦ-ﾟー]+/) %>
+
+      <% @hashtags_each.uniq.map do |tag| %>
+        <% tag.delete!("#")%>
+        <% Tag.where(tag_body:"#{tag}").all.each do |t|%>
+          <a href="/bookmark/<%= t.id %>" class="tags">#<%=t.tag_body%></a>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<script src="/script.js"></script>
+</body>
+</html>
